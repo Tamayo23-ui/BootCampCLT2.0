@@ -1,0 +1,57 @@
+name: CI-CD BootcampCLT
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set image tag
+        id: meta
+        run: echo "tag=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore Api.BootCamp.sln
+        
+      - name: Build
+        run: dotnet build Api.BootCamp.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test Api.BootCamp.sln -c Release --no-build
+        
+      - name: Login Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push image
+        run: |
+          docker build -f api.bootcamp.clt/Dockerfile -t tamagod123/bootcampclt-api:${{ steps.meta.outputs.tag }} api.bootcamp.clt
+          docker push tamagod123/bootcampclt-api:${{ steps.meta.outputs.tag }}
+
+  cd:
+    needs: ci
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy with Helm to Minikube
+        working-directory: api.bootcamp.clt/k8s/helm
+        run: |
+          helm upgrade --install bootcamp-api . --set image.tag=${{ needs.ci.outputs.image_tag }}
+          kubectl rollout status deployment/bootcamp-api -n bootcampkiara --timeout=120s

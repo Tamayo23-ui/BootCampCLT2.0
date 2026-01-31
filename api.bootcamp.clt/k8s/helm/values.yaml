@@ -1,0 +1,27 @@
+﻿replicaCount: 2
+
+image:
+  repository: tamagod123/bootcampclt-api
+  tag: "1.1"
+  pullPolicy: IfNotPresent
+
+app:
+  containerPort: 8080
+  env:
+    aspnetcoreEnvironment: Development
+    applicationName: API-BOOTCAMP-TAMAYO
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 8080
+
+postgres:
+  host: postgres-svc.default.svc.cluster.local
+  port: 5432
+  database: hardwareCLT
+  username: postgres
+  password: "a.123456"
+
+seq:
+  serverUrl: http://seq.infra:80
