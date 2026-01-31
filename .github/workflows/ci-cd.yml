@@ -2,7 +2,7 @@ name: CI-CD BootcampCLT
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
   workflow_dispatch:
 
 jobs:
@@ -55,3 +55,5 @@ jobs:
         run: |
           helm upgrade --install bootcamp-api . --set image.tag=${{ needs.ci.outputs.image_tag }}
           kubectl rollout status deployment/bootcamp-api -n bootcamTamagod --timeout=120s
+
+
