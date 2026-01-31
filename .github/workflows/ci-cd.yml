@@ -54,4 +54,4 @@ jobs:
         working-directory: api.bootcamp.clt/k8s/helm
         run: |
           helm upgrade --install bootcamp-api . --set image.tag=${{ needs.ci.outputs.image_tag }}
-          kubectl rollout status deployment/bootcamp-api -n bootcampkiara --timeout=120s
+          kubectl rollout status deployment/bootcamp-api -n bootcamTamagod --timeout=120s
